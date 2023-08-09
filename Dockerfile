@@ -2,6 +2,8 @@ FROM ubuntu:20.04
 
 LABEL org.opencontainers.image.authors='Artem Motozov <motozov.a.v@gmail.com>'
 
+ARG TAG=Copter-4.3.7
+
 RUN apt-get update && \
     apt-get install -y python3 python3-pip git curl && \
     ln -s /usr/bin/python3 /usr/bin/python
@@ -10,6 +12,7 @@ WORKDIR /sitl
 
 RUN git clone https://github.com/ArduPilot/ardupilot.git && \
     cd ardupilot && \
+    git checkout ${TAG} && \
     git submodule update --init --recursive && \
     pip install future pymavlink MAVProxy empy pexpect
 
