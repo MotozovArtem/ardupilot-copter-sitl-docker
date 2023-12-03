@@ -13,6 +13,7 @@ WORKDIR /sitl
 RUN git clone https://github.com/ArduPilot/ardupilot.git && \
     cd ardupilot && \
     git checkout ${TAG} && \
+    git config --global url."https://".insteadOf git:// && \
     git submodule update --init --recursive && \
     pip install future pymavlink MAVProxy empy pexpect
 
