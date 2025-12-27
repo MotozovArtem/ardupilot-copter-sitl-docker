@@ -24,9 +24,9 @@ RUN ./waf distclean
 RUN ./waf configure --board sitl
 RUN ./waf copter
 
-ENV LAT -35.3632622
-ENV LON 149.1652375
-ENV ALT 584.80
-ENV HEADING_NORTH 0
+ENV LAT=-35.3632622
+ENV LON=149.1652375
+ENV ALT=584.80
+ENV HEADING_NORTH=0
 
-ENTRYPOINT /sitl/ardupilot/Tools/autotest/sim_vehicle.py -w --console -v ArduCopter --no-rebuild --custom-location=${LAT},${LON},${ALT},${HEADING_NORTH}
+ENTRYPOINT ["/bin/bash", "-lc", "exec /sitl/ardupilot/Tools/autotest/sim_vehicle.py -w --console -v ArduCopter --no-rebuild --custom-location=${LAT},${LON},${ALT},${HEADING_NORTH}"]
