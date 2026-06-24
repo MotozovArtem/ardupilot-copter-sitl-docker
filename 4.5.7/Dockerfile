@@ -2,7 +2,7 @@ FROM ubuntu:22.04
 
 LABEL org.opencontainers.image.authors='Artem Motozov <motozov.a.v@gmail.com>'
 
-ARG TAG=Copter-4.3.7
+ARG TAG=Copter-4.5.7
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=UTC
@@ -15,7 +15,7 @@ WORKDIR /sitl
 
 RUN git clone https://github.com/ArduPilot/ardupilot.git --branch=${TAG} --recursive
 
-RUN pip install future pymavlink MAVProxy empy pexpect 
+RUN pip install future pymavlink MAVProxy "empy==3.3.4" pexpect
 
 WORKDIR /sitl/ardupilot
 
