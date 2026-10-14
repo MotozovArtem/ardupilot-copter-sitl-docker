@@ -11,7 +11,9 @@ RUN apt-get update && \
     pip3 install --no-cache-dir \
         future "empy==3.3.4" pexpect
 
-RUN git clone https://github.com/ArduPilot/ardupilot.git \
+# Old submodules use git:// URLs which GitHub no longer serves
+RUN git config --global url."https://github.com/".insteadOf "git://github.com/" && \
+    git clone https://github.com/ArduPilot/ardupilot.git \
         --branch=${TAG} --depth=1 \
         --recurse-submodules --shallow-submodules \
         /ardupilot
