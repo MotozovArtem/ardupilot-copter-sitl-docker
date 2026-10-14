@@ -1,31 +1,47 @@
-FROM ubuntu:22.04
-
-LABEL org.opencontainers.image.authors='Artem Motozov <motozov.a.v@gmail.com>'
+FROM ubuntu:22.04 AS builder
 
 ARG TAG=Copter-4.3.7
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV TZ=UTC
 
 RUN apt-get update && \
-    apt-get install -y python3 python3-pip git curl libxml2 libxslt-dev && \
-    ln -s /usr/bin/python3 /usr/bin/python
+    apt-get install -y --no-install-recommends \
+        ca-certificates git g++ make pkg-config python3 python3-pip && \
+    ln -s /usr/bin/python3 /usr/bin/python && \
+    pip3 install --no-cache-dir \
+        future pymavlink "empy==3.3.4" pexpect
+
+RUN git clone https://github.com/ArduPilot/ardupilot.git \
+        --branch=${TAG} --depth=1 \
+        --recurse-submodules --shallow-submodules \
+        /ardupilot
+
+WORKDIR /ardupilot
+
+RUN ./waf configure --board sitl && \
+    ./waf copter && \
+    strip build/sitl/bin/arducopter
+
+
+FROM ubuntu:22.04
+
+LABEL org.opencontainers.image.authors='Artem Motozov <motozov.a.v@gmail.com>'
+
+COPY --from=builder /ardupilot/build/sitl/bin/arducopter /sitl/arducopter
+COPY --from=builder /ardupilot/Tools/autotest/default_params/copter.parm /sitl/copter.parm
+COPY entrypoint.sh /sitl/entrypoint.sh
 
 WORKDIR /sitl
-
-RUN git clone https://github.com/ArduPilot/ardupilot.git --branch=${TAG} --recursive
-
-RUN pip install future pymavlink MAVProxy empy pexpect 
-
-WORKDIR /sitl/ardupilot
-
-RUN ./waf distclean
-RUN ./waf configure --board sitl
-RUN ./waf copter
 
 ENV LAT=-35.3632622
 ENV LON=149.1652375
 ENV ALT=584.80
 ENV HEADING_NORTH=0
 
-ENTRYPOINT ["/bin/bash", "-lc", "exec /sitl/ardupilot/Tools/autotest/sim_vehicle.py -w --console -v ArduCopter --no-rebuild --custom-location=${LAT},${LON},${ALT},${HEADING_NORTH}"]
+ENV MODE=tcp
+ENV GCS_HOST=host.docker.internal
+ENV GCS_PORT=14550
+
+EXPOSE 5760/tcp 5762/tcp 5763/tcp
+
+ENTRYPOINT ["/sitl/entrypoint.sh"]
